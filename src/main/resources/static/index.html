@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>WebLab1</title>
         <link rel="stylesheet" href="styles.css">
+        <script src="script.js"></script>
     </head>
 
     <body>
@@ -61,7 +62,7 @@
                         <!--Y-->
                         <fieldset>
                             <legend>Изменение Y</legend>
-                            <input type="text" id="Ytext" name="Ytext" placeholder="Значение Y"/>
+                            <input type="text" id="Ytext" name="Ytext" placeholder="Значение Y (от -3 до 3)"/>
                         </fieldset>
 
                         <!--R-->
@@ -89,7 +90,7 @@
                             </div>
                         </fieldset>
 
-                        <button name="submit">Проверить</button>
+                        <button name="submit" id="button">Проверить</button>
                     </div>
 
                     <!--график-->
@@ -149,7 +150,11 @@
                             <td>Y</td>
                             <td>R</td>
                             <td>Результат</td>
+                            <td>Время запроса</td>
+                            <td>Текущее время</td>
                         </tr>
+                            <td></td>
+                            <td></td>
                             <td></td>
                             <td></td>
                             <td></td>

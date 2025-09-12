@@ -82,3 +82,7 @@ button::before {
     content: '✔';
     margin-right: 8px;
 }
+
+button:disabled {
+    background-color: gray;
+}
