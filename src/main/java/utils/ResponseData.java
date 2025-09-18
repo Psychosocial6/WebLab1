@@ -1,15 +1,21 @@
-import java.time.Instant;
+package utils;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 
 public class ResponseData {
     private long time;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss dd-MM-yyyy")
     private LocalDateTime localTime;
     private boolean result;
+    private String message;
 
-    public ResponseData(long time, LocalDateTime localTime, boolean result) {
+    public ResponseData(long time, LocalDateTime localTime, boolean result, String message) {
         this.time = time;
         this.localTime = localTime;
         this.result = result;
+        this.message = message;
     }
 
     public long getTime() {
@@ -36,8 +42,11 @@ public class ResponseData {
         this.result = result;
     }
 
-    @Override
-    public String toString() {
-        return String.format("{ time: %s, localTime: %s, result: %s }", time, localTime, result);
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

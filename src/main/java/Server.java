@@ -1,90 +1,48 @@
 import com.fastcgi.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import utils.FilePrinter;
+import utils.RequestHandler;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
+import java.nio.file.Path;
 
 public class Server {
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static FilePrinter filePrinter = new FilePrinter(Path.of("logs/logs.txt"));
 
-    public static void main(String[] args) throws IOException {
-        System.setProperty("FCGI_PORT", "9000");
-        FCGIInterface fcgi = new FCGIInterface();
-        objectMapper.registerModule(new JavaTimeModule());
+    public static void main(String[] args) {
+        try {
+            System.setProperty("FCGI_PORT", "25565");
+            filePrinter.getPrintWriter().println("port 25565 set successfully");
+            FCGIInterface fcgi = new FCGIInterface();
 
-        while (fcgi.FCGIaccept() >= 0) {
-            String method = FCGIInterface.request.params.getProperty("REQUEST_METHOD");
-            FCGIRequest request = FCGIInterface.request;
-
-            try {
-                if (method.equals("POST")) {
-                    Instant beginning = Instant.now();
-                    int len = Integer.parseInt(request.params.getProperty("CONTENT_LENGTH"));
-                    byte[] body = new byte[len];
-                    request.inStream.read(body);
-                    String requestBody = new String(body, StandardCharsets.UTF_8);
-
-                    RequestData requestData = null;
-                    try {
-                        requestData = objectMapper.readValue(requestBody, RequestData.class);
-                    } catch (JsonProcessingException e) {
-                        sendBadRequest(request);
-                        continue;
-                    }
-                    boolean result = checkShot(requestData.getX(), requestData.getY(), requestData.getR());
-                    Instant end = Instant.now();
-                    ResponseData responseData = new ResponseData(Duration.between(beginning, end).toMillis(), LocalDateTime.now(), result);
-                    String responseBody = objectMapper.writeValueAsString(responseData);
-                    String response = """
-                            HTTP/1.1 200 OK
-                            Content-Type: application/json
-                            Content-Length: %d
-                            
-                            %s""";
-                    request.outStream.write(String.format(response, responseBody.getBytes().length, responseBody).getBytes(StandardCharsets.UTF_8));
+            while (fcgi.FCGIaccept() >= 0) {
+                filePrinter.getPrintWriter().println("got a new request");
+                FCGIRequest request = FCGIInterface.request;
+                try {
+                    RequestHandler.handleRequest(request);
                 }
-                else {
-                    sendBadRequest(request);
+                catch (Exception e) {
+                    filePrinter.getPrintWriter().println(e.getMessage());
+
+                }
+                finally {
+                    //closeServer()
                 }
             }
-            catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-            finally {
-                request.outStream.flush();
-                //request.outStream.close();
-                //request.inStream.close();
-            }
         }
+        catch (Exception e) {
+            filePrinter.getPrintWriter().println(e.getMessage());
+        }
+
     }
 
-    private static void sendBadRequest(FCGIRequest request) throws IOException {
-        String response = """
-                HTTP/1.1 400 Bad Request
-                Content-Length: 0
-                
-                """;
-        request.outStream.write(response.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public static boolean checkShot(float x, float y, float r) {
-        if (x >= 0 && y >= 0) {
-            return x * x + y * y <= r * r / 4;
+    public static void closeServer() {
+        try {
+            FCGIInterface.request.outStream.flush();
+            FCGIInterface.request.outStream.close();
+            FCGIInterface.request.inStream.close();
         }
-        else if (x <= 0 && y >= 0) {
-            return (x >= -1 * r && y <= r);
-        }
-        else if (x <= 0 && y <= 0) {
-            return y >= -0.5 * x - r;
-        }
-        else {
-            return false;
+        catch (IOException e) {
+            filePrinter.getPrintWriter().println(String.format("Exception while trying to close the server: %s", e.getMessage()));
         }
     }
 }

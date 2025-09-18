@@ -90,7 +90,11 @@
                             </div>
                         </fieldset>
 
-                        <button name="submit" id="button">Проверить</button>
+                        <div class="button-panel">
+                            <button name="submit" id="button" disabled>Проверить</button>
+                            <button name="clear" id="clear">Очистить таблицу</button>
+                        </div>
+
                     </div>
 
                     <!--график-->
@@ -144,26 +148,42 @@
                 <div class="table-block">
                     <!--таблица с результатами-->
                     <table>
+                        <thead>
                         <tr>
                             <td>№</td>
                             <td>X</td>
                             <td>Y</td>
                             <td>R</td>
-                            <td>Результат</td>
-                            <td>Время запроса</td>
+                            <td>Результат попадания</td>
+                            <td>Время обработки запроса, мс</td>
                             <td>Текущее время</td>
                         </tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        <tr>
+                        </thead>
 
+                        <tbody id="table-body">
+                        <tr>
+                            <td class="n"></td>
+                            <td class="x"></td>
+                            <td class="y"></td>
+                            <td class="r"></td>
+                            <td class="result"></td>
+                            <td class="request-time"></td>
+                            <td class="local-time"></td>
                         </tr>
+                        </tbody>
                     </table>
+
+                    <template id="row-template">
+                        <tr class="data-row">
+                            <td class="n"></td>
+                            <td class="x"></td>
+                            <td class="y"></td>
+                            <td class="r"></td>
+                            <td class="result"></td>
+                            <td class="request-time"></td>
+                            <td class="local-time"></td>
+                        </tr>
+                    </template>
                 </div>
             </div>
         </main>

@@ -1,9 +1,13 @@
+package utils;
+
+import java.math.BigDecimal;
+
 public class RequestData {
     private float x;
-    private float y;
+    private BigDecimal y;
     private float r;
 
-    public RequestData(float x, float y, float r) {
+    public RequestData(float x, BigDecimal y, float r) {
         this.x = x;
         this.y = y;
         this.r = r;
@@ -20,11 +24,11 @@ public class RequestData {
         this.x = x;
     }
 
-    public float getY() {
+    public BigDecimal getY() {
         return y;
     }
 
-    public void setY(float y) {
+    public void setY(BigDecimal y) {
         this.y = y;
     }
 
