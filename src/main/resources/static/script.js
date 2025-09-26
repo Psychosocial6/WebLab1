@@ -4,6 +4,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const text_field = document.getElementById("Ytext");
     const table_body = document.getElementById('table-body');
     const template = document.getElementById('row-template');
+    const image = document.getElementById('image');
+    const max_clicks = 3;
+    const time_interval = 1000;
+    let click_counter = 0;
+    let time = Date.now()
+    let img_time = Date.now();
+    let img_click_counter = 0;
 
     text_field.addEventListener("input", () => {
        validate(text_field.value);
@@ -198,7 +205,35 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
+    function show_captcha() {
+        alert("captcha");
+    }
+
+    function image_click() {
+        img_click_counter++;
+        if (img_click_counter > max_clicks) {
+            show_captcha();
+        }
+        else {
+            if (Date.now() - img_time > time_interval) {
+                img_time = Date.now();
+                img_click_counter = 0;
+            }
+        }
+    }
+
     function button_click() {
+        click_counter++;
+        if (click_counter > max_clicks) {
+            show_captcha();
+        }
+        else {
+            if (Date.now() - time > time_interval) {
+                time = Date.now();
+                click_counter = 0;
+            }
+        }
+
         const x_radio = document.querySelector('input[name="X"]:checked');
         let x_value = x_radio.value;
         let y_value = text_field.value;
@@ -226,4 +261,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
     clear_button.addEventListener("click", clear_click);
     check_button.addEventListener("click", button_click);
+    image.addEventListener("click", image_click);
 });
