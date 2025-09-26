@@ -16,8 +16,8 @@ import java.time.temporal.ChronoUnit;
 public class RequestHandler {
     private static final FilePrinter filePrinter = new FilePrinter(Path.of("logs/logs.txt"));
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static Instant startTime;
-    private static Instant endTime;
+    private static long startTime;
+    private static long endTime;
 
     private static final String RESPONSE_CREATED = """
                             Status: 201 Created
@@ -37,7 +37,19 @@ public class RequestHandler {
                             """;
     private static final String RESPONSE_METHOD_NOT_ALLOWED = """
             Status: 405 Method Not Allowed
-            Allow: POST
+            Allow: POST, GET, DELETE
+            """;
+
+    private static final String RESPONSE_GET_OK = """
+            Status: 200 OK
+            Content-Type: application/json
+            Content-Length: %d
+            
+            %s
+            
+            """;
+    private static final String RESPONSE_DELETE_OK = """
+            Status: 200 OK
             """;
 
     static {
@@ -47,9 +59,9 @@ public class RequestHandler {
     public static void handleRequest(FCGIRequest request) throws IOException {
         String method = request.params.getProperty("REQUEST_METHOD");
 
-        if (method.equals("POST")) {
+        if ("POST".equals(method)) {
+            startTime = System.nanoTime();
             filePrinter.getPrintWriter().println("processing POST request");
-            startTime = Instant.now();
             String requestBody = getBody(request);
             RequestData requestData = objectMapper.readValue(requestBody, RequestData.class);
             float x = requestData.getX();
@@ -59,15 +71,25 @@ public class RequestHandler {
             if (Validator.validateData(x, y, r)) {
                 filePrinter.getPrintWriter().println("request data validated successfully");
                 boolean result = AreaHitChecker.checkHit(x, y, r);
-                endTime = Instant.now();
-                sendResponseCreated(new ResponseData(startTime.until(endTime, ChronoUnit.MILLIS), LocalDateTime.now(), result, "OK"));
+                endTime = System.nanoTime();
+                filePrinter.getPrintWriter().println(endTime - startTime);
+                LocalDateTime time = LocalDateTime.now();
+                sendResponseCreated(new ResponseData(Math.round(((double) (endTime - startTime) / 1e6) * 1e6) / 1e6, time, result, "OK"));
+                TableItem tableItem = new TableItem(TableSave.getSize() + 1, x, y, r, result, Math.round(((double) (endTime - startTime) / 1e6) * 1e6) / 1e6, time);
+                TableSave.addItem(tableItem);
             }
             else {
                 filePrinter.getPrintWriter().println("invalid request data");
-                endTime = Instant.now();
-                sendResponseBadRequest(new ResponseData(startTime.until(endTime, ChronoUnit.MILLIS), LocalDateTime.now(), false, "Invalid coordinates values"));
+                endTime = System.nanoTime();
+                sendResponseBadRequest(new ResponseData(Math.round(((double) (endTime - startTime) / 1e6) * 1e6) / 1e6, LocalDateTime.now(), false, "Invalid coordinates values"));
             }
-
+        }
+        else if ("GET".equals(method)) {
+            sendResponseGetOk();
+        }
+        else if ("DELETE".equals(method)) {
+            TableSave.clear();
+            sendResponseDeleteOk();
         }
         else {
             sendResponseMethodNotAllowed();
@@ -93,6 +115,15 @@ public class RequestHandler {
 
     private static void sendResponseMethodNotAllowed() {
         System.out.println(RESPONSE_METHOD_NOT_ALLOWED);
+    }
+
+    private static void sendResponseGetOk() throws JsonProcessingException {
+        String responseBody = TableSave.getTable();
+        System.out.println(String.format(RESPONSE_GET_OK, responseBody.getBytes(StandardCharsets.UTF_8).length, responseBody));
+    }
+
+    private static void sendResponseDeleteOk() {
+        System.out.println(RESPONSE_DELETE_OK);
     }
 
 }

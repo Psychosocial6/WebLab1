@@ -26,6 +26,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
+
 }
 
 th, td {
@@ -49,7 +50,7 @@ body {
 }
 
 div > .block {
-    background-color: #ffffff;
+    background-color: #FFFFFF;
     border-radius: 30px;
     border: 1px solid #e2e8f0;
 }
@@ -85,6 +86,11 @@ header {
     font-size: medium;
     color: #334155;
     text-align: center;
+}
+
+.table-block {
+    height: 300px;
+    overflow-y: auto;
 }
 
 #button:before {

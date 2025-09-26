@@ -9,6 +9,63 @@ document.addEventListener("DOMContentLoaded", () => {
        validate(text_field.value);
     });
 
+
+    function clearServerTable() {
+        fetch('/api/', {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            table_body.innerHTML = '';
+            return response;
+        })
+        .catch(error => {
+            console.error('Ошибка при очистке данных:', error);
+        });
+    }
+
+    function loadTableFromServer() {
+        fetch('/api/', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(tableData => {
+            table_body.innerHTML = '';
+
+            tableData.forEach(rowData => {
+                const clone = template.content.cloneNode(true);
+                const newRow = clone.querySelector('tr');
+
+                newRow.classList.add('data-row');
+                newRow.querySelector('.n').textContent = rowData.n;
+                newRow.querySelector('.x').textContent = rowData.x;
+                newRow.querySelector('.y').textContent = rowData.y;
+                newRow.querySelector('.r').textContent = rowData.r;
+                newRow.querySelector('.result').textContent = rowData.result;
+                newRow.querySelector('.request-time').textContent = rowData.requestTime;
+                newRow.querySelector('.local-time').textContent = rowData.localTime;
+
+                table_body.appendChild(newRow);
+            });
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке данных:', error);
+        });
+    }
+
     function saveTable() {
         const data_rows = table_body.querySelectorAll('.data-row');
         const table_data = [];
@@ -52,10 +109,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 table_body.appendChild(newRow);
             });
         }
-    }
-
-    function clearTable() {
-        localStorage.clear();
     }
 
     loadTable();
@@ -167,8 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let clear = confirm("Вы уверены, что хотите отчистить таблицу?")
 
         if (clear) {
-            clearTable();
-            location.reload();
+            clearServerTable();
         }
     }
 
