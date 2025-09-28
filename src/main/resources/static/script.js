@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function clearServerTable() {
-        fetch('/api/', {
+        fetch('/api', {
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json',
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function loadTableFromServer() {
-        fetch('/api/', {
+        fetch('/api', {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    loadTable();
+    loadTableFromServer();
 
     function validate(value) {
         const val = value.trim().replace(',', '.');
@@ -205,14 +205,12 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
-    function show_captcha() {
-        alert("captcha");
-    }
-
-    function image_click() {
+    async function image_click() {
         img_click_counter++;
         if (img_click_counter > max_clicks) {
-            show_captcha();
+            await CaptchaManager.show()
+            img_click_counter = 0;
+            return;
         }
         else {
             if (Date.now() - img_time > time_interval) {
@@ -222,10 +220,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function button_click() {
+    async function button_click() {
         click_counter++;
         if (click_counter > max_clicks) {
-            show_captcha();
+            await CaptchaManager.show();
+            click_counter = 0;
         }
         else {
             if (Date.now() - time > time_interval) {
@@ -242,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = { x: x_value, y: y_value, r: r_value };
 
-        sendRequest('/api/', data)
+        sendRequest('/api', data)
             .then(result => {
                 console.log("Ответ от сервера:", result);
             })
@@ -263,3 +262,70 @@ document.addEventListener("DOMContentLoaded", () => {
     check_button.addEventListener("click", button_click);
     image.addEventListener("click", image_click);
 });
+
+let widgetId = null;
+function show_captcha() {
+    document.getElementById('captcha-overlay').classList.add('visible');
+    document.getElementById('captcha-modal').classList.add('visible');
+}
+
+function hide_captcha() {
+    document.getElementById('captcha-overlay').classList.remove('visible');
+    document.getElementById('captcha-modal').classList.remove('visible');
+    document.getElementById('captcha-error').innerText = '';
+
+    CaptchaManager.resolve();
+}
+
+function handle_captcha_failure() {
+    document.getElementById('captcha-error').innerText = 'Проверка не пройдена. Попробуйте снова.';
+    if (widgetId !== null) {
+        grecaptcha.reset(widgetId);
+    }
+}
+
+function onRecaptchaLoad() {
+    widgetId = grecaptcha.render('recaptcha-container', {
+        'sitekey': '6LdNGdcrAAAAABsGJEBHfhIsxYD4lL0d7YRYajjV',
+        'callback': handle_client_captcha_success
+    });
+}
+
+function handle_client_captcha_success(token) {
+    fetch('/api/captcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token })
+    })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                hide_captcha();
+            } else {
+                handle_captcha_failure();
+            }
+        })
+        .catch(() => handle_captcha_failure());
+}
+
+const CaptchaManager = {
+    resolvePromise: null,
+
+    show() {
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+            if (widgetId !== null) {
+                grecaptcha.reset(widgetId);
+            }
+            show_captcha(); // Ваша существующая функция для показа модалки
+        });
+    },
+
+    resolve() {
+        if (this.resolvePromise) {
+            this.resolvePromise();
+            this.resolvePromise = null; // Очищаем для следующего раза
+        }
+    }
+};
+

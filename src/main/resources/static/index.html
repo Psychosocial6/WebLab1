@@ -4,6 +4,7 @@
         <meta charset="UTF-8">
         <title>WebLab1</title>
         <link rel="stylesheet" href="styles.css">
+        <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
         <script src="script.js"></script>
     </head>
 
@@ -185,6 +186,16 @@
                         </tr>
                     </template>
                 </div>
+            </div>
+
+            <div id="captcha-overlay" class="captcha-overlay">
+
+            </div>
+            <div id="captcha-modal" class="captcha-modal">
+                <div id="recaptcha-container">
+
+                </div>
+                <p id="captcha-error" class="captcha-error-message"></p>
             </div>
         </main>
     </body>
