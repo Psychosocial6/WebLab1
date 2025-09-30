@@ -317,14 +317,14 @@ const CaptchaManager = {
             if (widgetId !== null) {
                 grecaptcha.reset(widgetId);
             }
-            show_captcha(); // Ваша существующая функция для показа модалки
+            show_captcha();
         });
     },
 
     resolve() {
         if (this.resolvePromise) {
             this.resolvePromise();
-            this.resolvePromise = null; // Очищаем для следующего раза
+            this.resolvePromise = null;
         }
     }
 };
